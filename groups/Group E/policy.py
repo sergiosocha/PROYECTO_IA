@@ -29,7 +29,7 @@ class YoConfio(Policy):
         return puntos
 
     def contar_tres_abiertos(self, board: np.ndarray, player: int) -> int:
-        """Cuenta cuántas veces aparecen XXX_ en el tablero para el player."""
+        """Cuenta cuántas veces aparecen XXX_ en el tablero para el jugador"""
         cont = 0
 
         for r in range(6):
@@ -59,7 +59,6 @@ class YoConfio(Policy):
         return cont
 
     def safe_transition(self, state, col):
-        """Transition que nunca rompe tests de Gradescope."""
         try:
             return state.transition(col)
         except:
@@ -80,7 +79,7 @@ class YoConfio(Policy):
             return 3
 
         prioridades = {
-            "ganar": 200000,
+            "ganar": 5000000,
             "bloquear": 150000,
             "tres_mios": 9000,
             "tres_rival": 7000,
