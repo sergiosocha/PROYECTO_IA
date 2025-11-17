@@ -28,6 +28,36 @@ class YoConfio(Policy):
                 puntos += 1
         return puntos
 
+    def contar_tres_abiertos(self, board: np.ndarray, player: int) -> int:
+        """Cuenta cuántas veces aparecen XXX_ en el tablero para el player."""
+        cont = 0
+
+        for r in range(6):
+            for c in range(4):
+                ventana = board[r, c:c+4]
+                if np.count_nonzero(ventana == player) == 3 and np.count_nonzero(ventana == 0) == 1:
+                    cont += 1
+
+        for r in range(3):
+            for c in range(7):
+                ventana = board[r:r+4, c]
+                if np.count_nonzero(ventana == player) == 3 and np.count_nonzero(ventana == 0) == 1:
+                    cont += 1
+
+        for r in range(3):
+            for c in range(4):
+                ventana = np.array([board[r+i, c+i] for i in range(4)])
+                if np.count_nonzero(ventana == player) == 3 and np.count_nonzero(ventana == 0) == 1:
+                    cont += 1
+
+        for r in range(3, 6):
+            for c in range(4):
+                ventana = np.array([board[r-i, c+i] for i in range(4)])
+                if np.count_nonzero(ventana == player) == 3 and np.count_nonzero(ventana == 0) == 1:
+                    cont += 1
+
+        return cont
+
     def safe_transition(self, state, col):
         """Transition que nunca rompe tests de Gradescope."""
         try:
@@ -50,11 +80,13 @@ class YoConfio(Policy):
             return 3
 
         prioridades = {
-            "ganar": 500,
-            "bloquear": 300,
-            "centro": 5,
+            "ganar": 200000,
+            "bloquear": 150000,
+            "tres_mios": 9000,
+            "tres_rival": 7000,
+            "antimoricion": 60000,
             "adyacente": 20,
-            "antimoricion": 10000
+            "centro": 10,
         }
 
         scores = {c: 0 for c in cols_disponibles}
@@ -90,9 +122,24 @@ class YoConfio(Policy):
             if new_state is None:
                 continue
 
+            tres_mios = self.contar_tres_abiertos(new_state.board, player)
+            tres_rival = self.contar_tres_abiertos(new_state.board, opponent)
+
+            if tres_mios > 0 and new_state.is_applicable(col):
+                scores[col] += prioridades["tres_mios"]
+
+            if tres_rival > 0:
+                scores[col] += prioridades["tres_rival"]
+
+        for col in cols_disponibles:
+            new_state = self.safe_transition(state, col)
+            if new_state is None:
+                continue
+
             row, _ = self.get_ult_jug(new_state.board, col)
             if row is not None:
-                scores[col] += self.contar_adyacentes(new_state.board, row, col, player) * prioridades["adyacente"]
+                ady = self.contar_adyacentes(new_state.board, row, col, player)
+                scores[col] += ady * prioridades["adyacente"]
 
         if 3 in cols_disponibles:
             scores[3] += prioridades["centro"]
