@@ -29,7 +29,6 @@ class YoConfio(Policy):
         return puntos
 
     def contar_tres_abiertos(self, board: np.ndarray, player: int) -> int:
-        """Cuenta cuántas veces aparecen XXX_ en el tablero para el jugador"""
         cont = 0
 
         for r in range(6):
