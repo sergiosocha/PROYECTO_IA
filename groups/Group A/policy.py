@@ -2,7 +2,7 @@ import numpy as np
 from connect4.policy import Policy
 
 
-class Aha(Policy):
+class Aha(): # Disabled
 
     def mount(self) -> None:
         pass
