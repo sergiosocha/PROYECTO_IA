@@ -18,9 +18,17 @@ def __init__(self):
 def get_qval_codificado(s: ConnectState, a: int) -> str:
     player = "Y" if s.player == 1 else "R"
     state_codificado = s.board.tobytes().hex()
+<<<<<<< HEAD
     return f"{player}_state_{state_codificado}_action_{a}"
 
 def identificar_jugador(s: np.ndarray):
+=======
+
+    return f"player{player}_action_{a}_state_{state_codificado}"
+
+
+def identificar_jugador(s: np.ndarray) -> int:
+>>>>>>> 326d5239f941b0675e27cc2d2c604f3428b514d1
     yellow_pieces = 0
     red_pieces = 0
     for r in range(6):
