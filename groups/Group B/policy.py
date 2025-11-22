@@ -2,7 +2,7 @@ import numpy as np
 from connect4.policy import Policy
 
 
-class Hello(Policy):
+class Hello():
 
     def mount(self) -> None:
         pass
