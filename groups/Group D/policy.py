@@ -72,7 +72,7 @@ class PicasPolicy(Policy):
         except:
             return None
 
-    def act(self, s: np.ndarray) -> int:
+    def act(self, s: np.ndarray, e: float = 0.1) -> int:
         state = ConnectState(s)
         player = state.player
         opponent = -player
@@ -83,6 +83,12 @@ class PicasPolicy(Policy):
         if np.all(s == 0):
             self.last_action = 3
             return 3
+
+        if e > np.random.rand():
+            rng = np.random.default_rng()
+            best_col = int(rng.choice(cols_disponibles))
+            self.last_action = best_col
+            return best_col
 
         prioridades = {
             "ganar": 5000000,
