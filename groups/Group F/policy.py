@@ -1,34 +1,20 @@
-import numpy as np
 import os
 import json
-from connect4.policy import Policy
-from connect4.connect_state import ConnectState
+import numpy as np
 
+from connect4.connect_state import ConnectState
+from connect4.policy import Policy
 
 POLICY_DIR = os.path.dirname(os.path.abspath(__file__))
-
-def __init__(self):
-    self.e = 0.1
-    self.q_vals = {}
-    self.q_counts = {}
-    self.last_action = None
-    self.last_state = None
 
 
 def get_qval_codificado(s: ConnectState, a: int) -> str:
     player = "Y" if s.player == 1 else "R"
     state_codificado = s.board.tobytes().hex()
-<<<<<<< HEAD
-    return f"{player}_state_{state_codificado}_action_{a}"
-
-def identificar_jugador(s: np.ndarray):
-=======
-
     return f"player{player}_action_{a}_state_{state_codificado}"
 
 
 def identificar_jugador(s: np.ndarray) -> int:
->>>>>>> 326d5239f941b0675e27cc2d2c604f3428b514d1
     yellow_pieces = 0
     red_pieces = 0
     for r in range(6):
@@ -43,6 +29,7 @@ def identificar_jugador(s: np.ndarray) -> int:
         return -1
     return 1
 
+
 class HumbleButHonest(Policy):
 
     def mount(self) -> None:
@@ -51,18 +38,19 @@ class HumbleButHonest(Policy):
         self.q_counts = {}
         self.last_action = None
         self.last_state = None
+
         json_path = os.path.join(POLICY_DIR, "qvals.json")
         if os.path.exists(json_path):
             data = json.load(open(json_path))
             self.q_vals = data.get("vals", {})
             self.q_counts = data.get("counts", {})
 
-
     def actualiza_q(self, reward: float):
         if self.last_action is not None and self.last_state is not None:
             s = self.last_state
             a = self.last_action
             key = get_qval_codificado(s, a)
+
             if key in self.q_counts:
                 self.q_counts[key] += 1
             else:
