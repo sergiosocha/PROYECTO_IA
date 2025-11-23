@@ -32,7 +32,7 @@ class HumbleButHonest(Policy):
 
     def mount(self) -> None:
         self.e = 0.1
-        self.q_values = {"R": {}, "Y": {}}
+        self.q_values = {1: {}, -1: {}}
         self.last_action = None
         self.last_state = None
 
@@ -129,12 +129,9 @@ class HumbleButHonest(Policy):
         cols_disponibles = [c for c in range(7) if state.is_applicable(c)]
         self.last_state = state
 
-        if not cols_disponibles:
-            return 0
-
         if np.all(s == 0):
             self.last_action = 3
-            return
+            return 3
 
         # Si e (epsilon) es mayor que el valor random, exploramos con una columna random
         # Valdría la pena cualquier columna disponible? o una random dentro de las que no tenemos guardadas en el JSON? (REVISAR)
@@ -145,10 +142,10 @@ class HumbleButHonest(Policy):
             return best_col
         # En cambio si e es menor, pero ya estuvimos en este estado antes, escogemos la acción con la que mejor nos fue
         elif state_codificado in self.q_values[player]:
-            best_action_value = 0.0
-            worst_action_value = 0.0
+            best_action_value   = -1000
+            worst_action_value  = 1000
             for action in cols_disponibles:
-                action_value = self.q_values[player][state_codificado].get(action, 0.0)
+                action_value = self.q_values[player][state_codificado].get(action, {}).get("q_value", 0.0)
                 if action_value > best_action_value:
                     best_action_value = action_value
                     best_col = action
@@ -157,18 +154,19 @@ class HumbleButHonest(Policy):
             # Si todas las acciones guardadas tienen el mismo valor, nos vamos con cualquiera, da igual
             if best_action_value == worst_action_value:
                 best_col = np.random.default_rng().choice(cols_disponibles)
+            self.last_action = best_col
             return best_col
 
         # Si absolutamente nunca habíamos estado en este estado continuar con la estrategia de siempre
         # TODO: Toca ajustarla a los últimos cambios xd
         prioridades = {
-            "ganar": 5000000,
-            "bloquear": 150000,
-            "tres_mios": 9000,
-            "tres_rival": 7000,
-            "antimoricion": 60000,
-            "adyacente": 20,
-            "centro": 10,
+            "ganar": 5,
+            "bloquear": 1.5,
+            "tres_mios": 0.9,
+            "tres_rival": 0.7,
+            "antimoricion": 0.6,
+            "adyacente": 0.02,
+            "centro": 0.01,
         }
         scores = {c: 0 for c in cols_disponibles}
         for col in cols_disponibles:
