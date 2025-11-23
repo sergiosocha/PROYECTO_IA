@@ -8,10 +8,8 @@ from connect4.policy import Policy
 POLICY_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def get_qval_codificado(s: ConnectState, a: int) -> str:
-    player = "Y" if s.player == 1 else "R"
-    state_codificado = s.board.tobytes().hex()
-    return f"player{player}_action_{a}_state_{state_codificado}"
+def get_state_codificado(s: ConnectState) -> str:
+    return s.board.tobytes().hex()
 
 
 def identificar_jugador(s: np.ndarray) -> int:
@@ -34,38 +32,38 @@ class HumbleButHonest(Policy):
 
     def mount(self) -> None:
         self.e = 0.1
-        self.q_vals = {}
-        self.q_counts = {}
+        self.q_values = {"R": {}, "Y": {}}
         self.last_action = None
         self.last_state = None
 
         json_path = os.path.join(POLICY_DIR, "qvals.json")
         if os.path.exists(json_path):
-            data = json.load(open(json_path))
-            self.q_vals = data.get("vals", {})
-            self.q_counts = data.get("counts", {})
+            self.q_values = json.load(open(json_path))
 
     def actualiza_q(self, reward: float):
         if self.last_action is not None and self.last_state is not None:
             s = self.last_state
             a = self.last_action
-            key = get_qval_codificado(s, a)
+            player = s.player
+            state_codificado = get_state_codificado(s=s)
 
-            if key in self.q_counts:
-                self.q_counts[key] += 1
-            else:
-                self.q_counts[key] = 1
-            n = self.q_counts[key]
-            if key not in self.q_vals:
-                self.q_vals[key] = 0.0
-            old_q = self.q_vals[key]
+            if state_codificado in self.q_values[player]:
+                if a not in self.q_values[player][state_codificado]:
+                    self.q_values[player][state_codificado][a]["q_value"] = 0.0
+                    self.q_values[player][state_codificado][a]["count"] = 0
+
+            old_q = self.q_values[player][state_codificado][a]["q_value"]
+            n = self.q_values[player][state_codificado][a]["count"] + 1
             new_q = old_q + (1 / n) * (reward - old_q)
-            self.q_vals[key] = new_q
+
+            self.self.q_values[player][state_codificado][a]["q_value"] = new_q
+            self.q_values[player][state_codificado][a]["count"] = n
+
             try:
                 json_path = os.path.join(POLICY_DIR, "qvals.json")
                 with open(json_path, "w") as f:
                     json.dump(
-                        {"vals": self.q_vals, "counts": self.q_counts},
+                        self.q_values,
                         f,
                         indent=4
                     )
