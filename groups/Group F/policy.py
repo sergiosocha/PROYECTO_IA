@@ -117,25 +117,50 @@ class HumbleButHonest(Policy):
         try:
             return state.transition(col)
         except:
-            return None
+            return
 
+    # TODO: Revisar cuando realmente hay que actualizar_q, debería ser DESPUÉS de tomar la acción y viendo el resultdo, no antes de tomar la acción
+    # Sugiero calcular de alguna forma un reward comparando self.last_state con el state que recibimos?
     def act(self, s: np.ndarray) -> int:
         player = identificar_jugador(s)
         state = ConnectState(board=s, player=player)
+        state_codificado = get_state_codificado(s=state)
         opponent = -player
         cols_disponibles = [c for c in range(7) if state.is_applicable(c)]
         self.last_state = state
+
         if not cols_disponibles:
             return 0
+
         if np.all(s == 0):
             self.last_action = 3
-            return 3
+            return
+
+        # Si e (epsilon) es mayor que el valor random, exploramos con una columna random
+        # Valdría la pena cualquier columna disponible? o una random dentro de las que no tenemos guardadas en el JSON? (REVISAR)
         if self.e > np.random.rand():
             rng = np.random.default_rng()
             best_col = int(rng.choice(cols_disponibles))
             self.last_action = best_col
-            self.actualiza_q(0)
             return best_col
+        # En cambio si e es menor, pero ya estuvimos en este estado antes, escogemos la acción con la que mejor nos fue
+        elif state_codificado in self.q_values[player]:
+            best_action_value = 0.0
+            worst_action_value = 0.0
+            for action in cols_disponibles:
+                action_value = self.q_values[player][state_codificado].get(action, 0.0)
+                if action_value > best_action_value:
+                    best_action_value = action_value
+                    best_col = action
+                elif action_value < worst_action_value:
+                    worst_action_value = action_value
+            # Si todas las acciones guardadas tienen el mismo valor, nos vamos con cualquiera, da igual
+            if best_action_value == worst_action_value:
+                best_col = np.random.default_rng().choice(cols_disponibles)
+            return best_col
+
+        # Si absolutamente nunca habíamos estado en este estado continuar con la estrategia de siempre
+        # TODO: Toca ajustarla a los últimos cambios xd
         prioridades = {
             "ganar": 5000000,
             "bloquear": 150000,
