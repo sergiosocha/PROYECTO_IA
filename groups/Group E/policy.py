@@ -3,7 +3,7 @@ from connect4.policy import Policy
 from connect4.connect_state import ConnectState
 
 
-class YoConfio(Policy): # Disabled
+class YoConfio(): # Disabled
 
     def mount(self) -> None:
         pass
