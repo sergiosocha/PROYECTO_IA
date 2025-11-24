@@ -25,7 +25,7 @@ Este proyecto implementa un agente que juega Connect 4. El agente aprende de cad
 
 ### Requisitos
 
-- Python 3.13 o superior (Recomendado)
+- Python 3.11 o superior (Recomendado)
 - numpy
 - matplotlib
 - pydantic
